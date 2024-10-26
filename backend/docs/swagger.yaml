@@ -1,0 +1,291 @@
+openapi: 3.0.0
+info:
+  title: Quiz API
+  description: API documentation for Quiz app
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local server
+
+paths:
+  /quizzes:
+    get:
+      summary: Get a list of quizzes with optional filters
+      tags:
+        - Quizzes
+      parameters:
+        - name: title
+          in: query
+          description: Filter quizzes by title
+          required: false
+          schema:
+            type: string
+        - name: description
+          in: query
+          description: Filter quizzes by description
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of quizzes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+                    description:
+                      type: string
+        500:
+          description: Server error
+
+  /quizzes/{quizId}:
+    get:
+      summary: Get detailed information about a quiz
+      tags:
+        - Quizzes
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      responses:
+        200:
+          description: Quiz information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  questions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        questionId:
+                          type: string
+                        text:
+                          type: string
+                        options:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              optionId:
+                                type: string
+                              text:
+                                type: string
+                              isCorrect:
+                                type: boolean
+        404:
+          description: Quiz not found
+        500:
+          description: Server error
+
+  /quizzes/{quizId}/questions:
+    get:
+      summary: Get questions for a specific quiz
+      tags:
+        - Quizzes
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      responses:
+        200:
+          description: List of questions for the quiz
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    questionId:
+                      type: string
+                    text:
+                      type: string
+                    options:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          optionId:
+                            type: string
+                          text:
+                            type: string
+                          isCorrect:
+                            type: boolean
+        404:
+          description: Quiz or questions not found
+        500:
+          description: Server error
+
+  /quizzes/{quizId}/answers:
+    post:
+      summary: Submit an answer for a question
+      tags:
+        - Quizzes
+      parameters:
+        - in: path
+          name: quizId
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID of the user submitting the answer
+                  example: "user123"
+                questionId:
+                  type: string
+                  description: ID of the question being answered
+                  example: "question456"
+                optionIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of option IDs selected by the user
+                  example: [ "optionA", "optionB" ]
+      responses:
+        200:
+          description: Answer submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                      quizId:
+                        type: string
+                      score:
+                        type: integer
+                        description: The updated score after submitting the answer
+                  isCorrect:
+                    type: boolean
+                    description: Indicates if the submitted answer was correct
+                    example: true
+        400:
+          description: Invalid request (e.g., invalid option ID or answer schema)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid options selected"
+        404:
+          description: Question not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Question not found"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Error submitting answer"
+
+
+  /leaderboards/global:
+    get:
+      summary: Get the global leaderboard
+      tags:
+        - Leaderboards
+      responses:
+        200:
+          description: Global leaderboard data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: string
+                    score:
+                      type: integer
+        500:
+          description: Server error
+
+  /leaderboards/{quizId}:
+    get:
+      summary: Get the leaderboard for a specific quiz
+      tags:
+        - Leaderboards
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      responses:
+        200:
+          description: Leaderboard for a specific quiz
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: string
+                    score:
+                      type: integer
+        404:
+          description: Quiz not found
+        500:
+          description: Server error

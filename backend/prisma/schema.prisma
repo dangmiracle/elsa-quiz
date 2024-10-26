@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  username  String    @unique
+  email     String    @unique
+  isAdmin   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  scores    UserQuizScore[]
+}
+
+model Quiz {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime  @default(now())
+  questions   QuizQuestion[]
+  scores      UserQuizScore[]
+}
+
+model Question {
+  id           String    @id @default(uuid())
+  questionText String
+  type         String    // "single" or "multiple" choice
+  difficulty   String    // "easy", "medium", "hard"
+  score        Int       // Points for this question
+  createdAt    DateTime  @default(now())
+  options      Option[]
+  quizQuestions QuizQuestion[]
+}
+
+model Option {
+  id          String    @id @default(uuid())
+  optionText  String
+  isCorrect   Boolean   @default(false)
+  question    Question  @relation(fields: [questionId], references: [id])
+  questionId  String
+}
+
+model QuizQuestion {
+  id          String    @id @default(uuid())
+  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  quizId      String
+  question    Question  @relation(fields: [questionId], references: [id])
+  questionId  String
+}
+
+model UserQuizScore {
+  id          String    @id @default(uuid())
+  score       Int       @default(0)
+  lastUpdated DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  quizId      String
+  @@unique([userId, quizId]) // Compound unique constraint
+}
