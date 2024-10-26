@@ -70,3 +70,4 @@ exports.getQuizLeaderboard = async (req, res) => {
     });
 };
 
+

@@ -1,73 +1,98 @@
-# Real-Time Vocabulary Quiz Coding Challenge
 
-## Overview
+# Quiz Application Backend
 
-Welcome to the Real-Time Quiz coding challenge! Your task is to create a technical solution for a real-time quiz feature for an English learning application. This feature will allow users to answer questions in real-time, compete with others, and see their scores updated live on a leaderboard.
+This is the backend for a Quiz Application, built using Node.js, Express, and Prisma ORM. It includes support for PostgreSQL, Redis, RabbitMQ, and JWT-based authentication.
 
-## Acceptance Criteria
+## Table of Contents
+- [Requirements](#requirements)
+- [Setup](#setup)
+- [Environment Variables](#environment-variables)
+- [Running the Application](#running-the-application)
+- [Database Seeding](#database-seeding)
+- [Testing](#testing)
+- [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
+- [Common Issues](#common-issues)
 
-1. **User Participation**:
-    - Users should be able to join a quiz session using a unique quiz ID.
-    - The system should support multiple users joining the same quiz session simultaneously.
+## Requirements
+- **Node.js** v14 or higher
+- **npm** v6 or higher
+- **Docker** (for PostgreSQL, Redis, RabbitMQ)
+- **PostgreSQL**
+- **Redis** and **RabbitMQ** (optional, for caching and message queuing)
 
-2. **Real-Time Score Updates**:
-    - As users submit answers, their scores should be updated in real-time.
-    - The scoring system must be accurate and consistent.
+## Setup
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/dangmiracle/quiz.git
+   cd backend
+   ```
 
-3. **Real-Time Leaderboard**:
-    - A leaderboard should display the current standings of all participants.
-    - The leaderboard should update promptly as scores change.
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-## Challenge Requirements
+3. **Run PostgreSQL with Docker**
+   ```bash
+   docker run --name quiz-postgres -e POSTGRES_USER=quizuser -e POSTGRES_PASSWORD=quizpass -e POSTGRES_DB=quizdb -p 5432:5432 -d postgres
+   ```
 
-### Part 1: System Design
+4. **Initialize Prisma and Migrate**
+   ```bash
+   npm run prisma:init
+   ```
 
-1. **System Design Document**:
-    - **Architecture Diagram**: Create an architecture diagram illustrating how different components of the system interact. This should include all components required for the feature, including the server, client applications, database, and any external services.
-    - **Component Description**: Describe each component's role in the system.
-    - **Data Flow**: Explain how data flows through the system from when a user joins a quiz to when the leaderboard is updated.
-    - **Technologies and Tools**: List and justify the technologies and tools chosen for each component.
+## Environment Variables
+Create a `.env` file in the project root with the following:
+```plaintext
+DATABASE_URL="postgresql://quizuser:quizpass@localhost:5432/quizdb"
+REDIS_URL="redis://localhost:6379"
+RABBITMQ_URL="amqp://localhost:5672"
+JWT_SECRET="your_jwt_secret_here"
+PORT=3000
+```
 
-### Part 2: Implementation
+## Running the Application
+- **Start the server**
+  ```bash
+  npm run start
+  ```
+- **Development Mode** (with hot reloading)
+  ```bash
+  npm run dev
+  ```
 
-1. **Pick a Component**:
-    - Implement one of the core components below using the technologies that you are comfortable with. The rest of the system can be mocked using mock services or data.
+## Database Seeding
+Populate the database with initial data:
+```bash
+npm run seed
+```
 
-2. **Requirements for the Implemented Component**:
-    - **Real-time Quiz Participation**: Users should be able to join a quiz session using a unique quiz ID.
-    - **Real-time Score Updates**: Users' scores should be updated in real-time as they submit answers.
-    - **Real-time Leaderboard**: A leaderboard should display the current standings of all participants in real-time.
+## Testing
+Run tests with Jest:
+```bash
+npm test
+```
 
-3. **Build For the Future**:
-    - **Scalability**: Design and implement your component with scalability in mind. Consider how the system would handle a large number of users or quiz sessions. Discuss any trade-offs you made in your design and implementation.
-    - **Performance**: Your component should perform well even under heavy load. Consider how you can optimize your code and your use of resources to ensure high performance.
-    - **Reliability**: Your component should be reliable and handle errors gracefully. Consider how you can make your component resilient to failures.
-    - **Maintainability**: Your code should be clean, well-organized, and easy to maintain. Consider how you can make it easy for other developers to understand and modify your code.
-    - **Monitoring and Observability**: Discuss how you would monitor the performance of your component and diagnose issues. Consider how you can make your component observable.
+## API Documentation
+API documentation is available via Swagger at:
+```
+http://localhost:3000/api-docs
+```
 
-## Submission Guidelines
+## Project Structure
+```
+├── controllers       # Request handlers
+├── config            # Configuration files (database, redis, rabbitmq)
+├── routes            # API routes
+├── prisma            # Prisma schema and migrations
+├── tests             # Test files
+├── .env              # Environment variables
+└── app.js            # Application entry point
+```
 
-Candidates are required to submit the following as part of the coding challenge:
-
-1. **System Design Documents**:
-    - **Architecture Diagram**: Illustrate the interaction of system components (server, client applications, database, etc.).
-    - **Component Descriptions**: Explain the role of each component.
-    - **Data Flow**: Describe how data flows from user participation to leaderboard updates.
-    - **Technology Justification**: List the chosen technologies and justify why they were selected.
-
-2. **Working Code**:
-    - Choose one of the core components mentioned in the requirements and implement it using your preferred technologies. The rest of the system can be mocked using appropriate mock services or data.
-    - Ensure the code meets criteria such as scalability, performance, reliability, maintainability, and observability.
-
-3. **Video Submission**:
-    - Record a short video (5-10 minutes) where you address the following:
-        - **Introduction**: Introduce yourself and state your name.
-        - **Assignment Overview**: Describe the technical assignment that ELSA gave in your own words. Feel free to mention any assumptions or clarifications you made.
-        - **Solution Overview**: Provide a crisp overview of your solution, highlighting key design and implementation elements.
-        - **Demo**: Run the code on your local machine and walk us through the output or any tests you’ve written to verify the functionality.
-        - **Conclusion**: Conclude with any remarks, such as challenges faced, learnings, or further improvements you would make.
-
-   **Video Requirements**:
-    - The video must be between **5-10 minutes**. Any submission beyond 10 minutes will be rejected upfront.
-    - Use any recording device (smartphone, webcam, etc.), ensuring good audio and video quality.
-    - Ensure clear and concise communication.
+## Common Issues
+1. **Database Connection**: Ensure `DATABASE_URL` is correct.
+2. **Prisma Errors**: Run `npx prisma generate` if the schema changes.
+3. **Redis/RabbitMQ Errors**: Check Redis and RabbitMQ services if enabled.
