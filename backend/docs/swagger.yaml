@@ -1,0 +1,341 @@
+openapi: 3.0.0
+info:
+  title: Quiz API
+  description: API documentation for Quiz app
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # Optional, can help with tooling support
+
+  schemas:
+    Quiz:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+
+    Question:
+      type: object
+      properties:
+        questionId:
+          type: string
+        text:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/Option'
+
+    Option:
+      type: object
+      properties:
+        optionId:
+          type: string
+        text:
+          type: string
+        isCorrect:
+          type: boolean
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      summary: User login or signup
+      description: Authenticates a user by username. Creates a new user if they do not already exist.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user.
+                  example: johndoe
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        description: Unique identifier for the user.
+                      username:
+                        type: string
+                      token:
+                        type: string
+                        description: JWT token for authentication.
+        400:
+          description: Invalid request
+        500:
+          description: Server error
+  # New endpoint to get the total score of a user
+  /users/total-score:
+    get:
+      summary: Get the total score of the authenticated user
+      description: Returns the total score of the user. It first checks Redis for cached score; if not found, calculates from the database.
+      tags:
+        - Users
+      security:
+        - BearerAuth: []  # Assuming JWT or other auth mechanism
+      responses:
+        200:
+          description: Total score fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  score:
+                    type: integer
+                    description: The user's total score
+                    example: 150
+        403:
+          description: Unauthorized access, user not authenticated
+        500:
+          description: Server error
+  /quizzes:
+    get:
+      summary: Get a list of quizzes with optional filters
+      tags:
+        - Quizzes
+      parameters:
+        - name: title
+          in: query
+          description: Filter quizzes by title
+          required: false
+          schema:
+            type: string
+        - name: description
+          in: query
+          description: Filter quizzes by description
+          required: false
+          schema:
+            type: string
+      security:
+        - BearerAuth: []  # Requires token authentication
+      responses:
+        200:
+          description: List of quizzes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Quiz'
+        500:
+          description: Server error
+
+  /quizzes/{quizId}:
+    get:
+      summary: Get detailed information about a quiz
+      tags:
+        - Quizzes
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      security:
+        - BearerAuth: []  # Requires token authentication
+      responses:
+        200:
+          description: Quiz information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quiz'
+        404:
+          description: Quiz not found
+        500:
+          description: Server error
+
+  /quizzes/{quizId}/questions:
+    get:
+      summary: Get questions for a specific quiz
+      tags:
+        - Quizzes
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      security:
+        - BearerAuth: []  # Requires token authentication
+      responses:
+        200:
+          description: List of questions for the quiz
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+        404:
+          description: Quiz or questions not found
+        500:
+          description: Server error
+
+  /quizzes/{quizId}/submitAnswers:
+    post:
+      summary: Submit answers for multiple questions in a quiz
+      tags:
+        - Quizzes
+      parameters:
+        - in: path
+          name: quizId
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      questionId:
+                        type: string
+                        description: ID of the question being answered
+                      optionIds:
+                        type: array
+                        items:
+                          type: string
+                        description: Array of selected option IDs
+      responses:
+        200:
+          description: Answers submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      updatedScore:
+                        type: object
+                        properties:
+                          userId:
+                            type: string
+                          quizId:
+                            type: string
+                          score:
+                            type: integer
+                            description: The updated total score
+                      results:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            questionId:
+                              type: string
+                            success:
+                              type: boolean
+                            isCorrect:
+                              type: boolean
+                            score:
+                              type: integer
+        400:
+          description: Invalid request
+        500:
+          description: Internal server error
+
+  /leaderboards/global:
+    get:
+      summary: Get the global leaderboard
+      tags:
+        - Leaderboards
+      security:
+        - BearerAuth: []  # Requires token authentication
+      responses:
+        200:
+          description: Global leaderboard data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: string
+                    score:
+                      type: integer
+        500:
+          description: Server error
+
+  /leaderboards/{quizId}:
+    get:
+      summary: Get the leaderboard for a specific quiz
+      tags:
+        - Leaderboards
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the quiz
+      security:
+        - BearerAuth: []  # Requires token authentication
+      responses:
+        200:
+          description: Leaderboard for a specific quiz
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: string
+                    score:
+                      type: integer
+        404:
+          description: Quiz not found
+        500:
+          description: Server error
