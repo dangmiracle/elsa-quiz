@@ -18,29 +18,7 @@ const Header: React.FC = () => {
         const storedUsername = Cookies.get('username');
         if (storedUsername) {
             setUsername(storedUsername as string);
-            fetchTotalScore(storedUsername); // Fetch score on load if username is present
         }
-
-        // Initialize socket connection
-        initiateSocketConnection();
-
-        // Subscribe to the `userScoreUpdated` event
-        const handleUserScoreUpdate = (data: { username: string; userId:string, score: number }) => {
-            console.log('Received userScoreUpdated event:', data);
-            var formatedData = JSON.parse(data);
-            // Update totalScore if the event's username matches the current user
-            if (formatedData.username === Cookies.get('username')) {
-                setTotalScore(parseInt(formatedData.score) + totalScore);
-            }
-        };
-
-        subscribeToEvent('userScoreUpdated', handleUserScoreUpdate);
-
-        // Cleanup on component unmount
-        return () => {
-            unsubscribeFromEvent('userScoreUpdated');
-            disconnectSocket();
-        };
     }, [username]);
 
     const fetchTotalScore = async (username: string) => {
@@ -73,7 +51,6 @@ const Header: React.FC = () => {
                     onClick={handleHomeClick}
                 />
                 <h1 className="text-2xl font-bold">Quiz App</h1>
-                <span className="font-semibold">Total Score: {totalScore}</span>
             </div>
             <div className="flex items-center gap-4">
                 {username && (
