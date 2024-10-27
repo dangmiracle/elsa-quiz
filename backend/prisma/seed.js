@@ -21,7 +21,6 @@ function generateOptions(isMultiple) {
             options[index].isCorrect = true;
         });
     } else {
-        // For 'single' type, only the first option is correct
         options[getRandom(1,correctIndices.size)].isCorrect = true;
     }
 
@@ -29,7 +28,6 @@ function generateOptions(isMultiple) {
 }
 
 async function main() {
-    // Create Users
     await prisma.user.createMany({
         data: [
             { username: 'dangmiracle', email: 'dangmiracle@example.com', isAdmin: false },
@@ -40,7 +38,6 @@ async function main() {
         skipDuplicates: true
     });
 
-    // Create Quizzes and Questions with Options
     for (let i = 1; i <= 5; i++) {
         const quiz = await prisma.quiz.create({
             data: {

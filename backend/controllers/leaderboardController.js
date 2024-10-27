@@ -1,9 +1,8 @@
 const prisma = require('../config/database');
 const redis = require('../config/redis');
 
-// Fetch the global leaderboard
 exports.getGlobalLeaderboard = async (req, res) => {
-    const cacheKey = `global_leaderboard`;
+    const cacheKey = `global:leaderboard`;
     redis.get(cacheKey, async (err, data) => {
         if (err) return res.status(500).json({ success: false, message: 'Redis error' });
         if (data) return res.status(200).json({ success: true, data: JSON.parse(data) });
@@ -25,7 +24,7 @@ exports.getGlobalLeaderboard = async (req, res) => {
                     return {
                         userId: entry.userId,
                         username: user ? user.username : 'Unknown User',
-                        totalScore: entry._sum.score,
+                        score: entry._sum.score,
                     };
                 })
             );
@@ -39,7 +38,6 @@ exports.getGlobalLeaderboard = async (req, res) => {
     });
 };
 
-// Fetch leaderboard for a specific quiz
 exports.getQuizLeaderboard = async (req, res) => {
     const { quizId } = req.params;
     const cacheKey = `leaderboard:${quizId}`;

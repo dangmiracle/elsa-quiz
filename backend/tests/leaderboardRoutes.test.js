@@ -1,14 +1,12 @@
 const request = require('supertest');
 const app = require('../app');
 const prisma = require('../config/database');
-const redisClient = require('../config/redis'); // Redis client
-const rabbitmqConnection = require('../config/rabbitmq'); // RabbitMQ client
+const redisClient = require('../config/redis');
+const rabbitmqConnection = require('../config/rabbitmq');
 
-// Mock ioredis and amqplib
 jest.mock('ioredis');
 jest.mock('amqplib');
 
-// Mock Prisma database interactions
 jest.mock('../config/database', () => ({
     userQuizScore: {
         groupBy: jest.fn(),
@@ -60,7 +58,6 @@ describe('Leaderboard Routes', () => {
     });
 });
 
-// Close Redis and RabbitMQ connections after all tests in this suite
 afterAll(async () => {
     if (redisClient && typeof redisClient.quit === 'function') {
         await redisClient.quit();

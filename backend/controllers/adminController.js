@@ -1,7 +1,5 @@
-// Import Prisma client
 const prisma = require('../config/database');
 
-// Create a new quiz
 exports.createQuiz = async (req, res) => {
     const { title, description } = req.body;
     try {
@@ -15,7 +13,6 @@ exports.createQuiz = async (req, res) => {
     }
 };
 
-// Add a question to an existing quiz
 exports.addQuestion = async (req, res) => {
     const { quizId } = req.params;
     const { questionText, difficulty, score, options, type } = req.body;
@@ -28,7 +25,7 @@ exports.addQuestion = async (req, res) => {
                 score,
                 type,
                 options: {
-                    create: options  // options should be an array of { optionText, isCorrect }
+                    create: options
                 },
                 quizzes: {
                     connect: { id: quizId }

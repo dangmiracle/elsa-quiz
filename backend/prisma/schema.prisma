@@ -8,57 +8,79 @@ generator client {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  username  String    @unique
-  email     String    @unique
-  isAdmin   Boolean   @default(false)
-  createdAt DateTime  @default(now())
+  id        String          @id @default(uuid())
+  username  String          @unique
+  email     String          @unique
+  isAdmin   Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @default(now())
   scores    UserQuizScore[]
 }
 
 model Quiz {
-  id          String    @id @default(uuid())
+  id          String          @id @default(uuid())
   title       String
   description String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now())
   questions   QuizQuestion[]
   scores      UserQuizScore[]
 }
 
 model Question {
-  id           String    @id @default(uuid())
+  id           String          @id @default(uuid())
   questionText String
-  type         String    // "single" or "multiple" choice
-  difficulty   String    // "easy", "medium", "hard"
-  score        Int       // Points for this question
-  createdAt    DateTime  @default(now())
+  type         String          // "single" or "multiple" choice
+  difficulty   String          // "easy", "medium", "hard"
+  score        Int             // Points for this question
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @default(now())
   options      Option[]
   quizQuestions QuizQuestion[]
 }
 
 model Option {
-  id          String    @id @default(uuid())
+  id          String          @id @default(uuid())
   optionText  String
-  isCorrect   Boolean   @default(false)
-  question    Question  @relation(fields: [questionId], references: [id])
+  isCorrect   Boolean         @default(false)
+  question    Question        @relation(fields: [questionId], references: [id])
   questionId  String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now())
 }
 
 model QuizQuestion {
-  id          String    @id @default(uuid())
-  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  id          String          @id @default(uuid())
+  quiz        Quiz            @relation(fields: [quizId], references: [id])
   quizId      String
-  question    Question  @relation(fields: [questionId], references: [id])
+  question    Question        @relation(fields: [questionId], references: [id])
   questionId  String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now())
 }
 
 model UserQuizScore {
-  id          String    @id @default(uuid())
-  score       Int       @default(0)
-  lastUpdated DateTime  @default(now())
-  user        User      @relation(fields: [userId], references: [id])
+  id          String                 @id @default(uuid())
+  score       Int                    @default(0)
+  user        User                   @relation(fields: [userId], references: [id])
   userId      String
-  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  quiz        Quiz                   @relation(fields: [quizId], references: [id])
   quizId      String
-  @@unique([userId, quizId]) // Compound unique constraint
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @default(now())
+  answerHistories UserQuizAnswerHistory[]
+
+  @@unique([userId, quizId])
+}
+
+model UserQuizAnswerHistory {
+  id              String          @id @default(uuid())
+  userQuizScore   UserQuizScore   @relation(fields: [userQuizScoreId], references: [id])
+  userQuizScoreId String
+  questionId      String
+  userAnswers     String[]
+  correctOptionIds String[]
+  isCorrect       Boolean
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now())
 }
